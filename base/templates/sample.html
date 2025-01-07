@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Python Django How To Use DataTables with Insert Data Jquery Ajax</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"/>
+    <link rel = "stylesheet" type = "text/css" href = "https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css"/>
+    <link rel="stylesheet" href="{% static 'custom.css' %}"/>
+	<link rel="stylesheet" href="{% static 'approved.css' %}"/>
+	<!--google fonts -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
+	<style>
+        /* Basic styling for the table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+        }
+        table.diff {
+            background-color: #f9f9f9;
+        }
+        table.diff th {
+            background-color:rgb(249, 249, 249);
+            padding: 6px;
+            text-align: left;
+        }
+        table.diff td {
+            border: 1px solid #ccc;
+            padding: 4px;
+            font-size: 14px;
+        }
+        .diff_add { background-color: #d4f9d6; } /* Green for additions */
+        .diff_chg { background-color: #fff3cd; } /* Yellow for changes */
+        .diff_sub { background-color: #f8d7da; } /* Red for deletions */
+
+		/* Example popup styling */
+        .popup {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            z-index: 1000;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        .popup.show {
+            display: block; /* Show the popup */
+        }
+    </style>
+	<!--google material icon-->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons"rel="stylesheet">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1"/>
+</head>
+<body>
+	<div class="wrapper">
+     
+		<div class="body-overlay"></div>
+	   
+	   <!-------sidebar--design------------>
+	   
+	   <div id="sidebar">
+		  <div class="sidebar-header">
+			 <h3><span><i class="material-icons">folder_special</i>Thesis Repository</span></h3>
+		  </div>
+		  <ul class="list-unstyled component m-0">
+			<li class="active">
+			<a href="#" class="dashboard"><i class="material-icons">dashboard</i>List of pending </a>
+			</li>
+			 
+			<li class="">
+			<a href="{% url "base:home" %}" class=""><i class="material-icons">search</i>Repository</a>
+			</li>
+			 
+			<li class="">
+			  <a href="{% url "base:generate_url" %}" class=""><i class="material-icons">arrow_forward</i>Generate URL </a>
+			 </li>
+
+			 <li class="">
+				<a href="{% url "base:archive_and_delete" %}" class=""><i class="material-icons">archive</i>Archive</a>
+			 </li>
+		  </ul>
+	   </div>
+	   
+   
+	 
+		<div id="content">
+		   
+		   
+			   
+			<div class="top-navbar">
+			   <div class="xd-topbar">
+				   <div class="row">
+					   <div class="col-2 col-md-1 col-lg-1 order-2 order-md-1 align-self-center">
+						  <div class="xp-menubar">
+							  <span class="material-icons text-white">signal_cellular_alt</span>
+						  </div>
+					   </div>
+					   
+					   <div class="col-md-5 col-lg-3 order-3 order-md-2">
+					   </div>
+					   
+					   
+					   <div class="col-8 col-md-2 col-lg-7 order-1 order-md-2">
+						   <div class="xp-profilebar text-right">
+							  <nav class="navbar p-0">
+								 <ul class="nav navbar-nav flex-row ml-auto">
+								
+								 <li class="dropdown nav-item">
+								   <a class="nav-link" href="#" data-toggle="dropdown">
+									  <i class="material-icons">directions_walk</i>
+								   </a>
+									<ul class="dropdown-menu small-menu">
+									   <li><a href="#">
+									   <span class="material-icons">person_outline</span>
+									   Profile
+									   </a></li>
+									   <li><a href="{% url "base:logout" %}">
+									   <span class="material-icons">logout</span>
+									   Logout
+									   </a></li>
+									   
+									</ul>
+								 </li>
+								 
+								 
+								 </ul>
+							  </nav>
+						   </div>
+					  </div>
+					   
+				   </div>
+				   
+				  
+				   
+				   
+			   </div>
+			</div>
+		   
+			   
+				<div class="main-content">
+				   <div class="row">
+					  <div class="col-md-12">
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col">
+									<table id = "table" class = "cell-border compact stripe">
+										<thead class="alert-warning">
+											<tr>
+												<th>Document Name</th>
+												<th>Compared Document With Highest Score </th>
+												<th>Score</th>
+												<th>Action</th>
+												<th>Action</th>
+												<th>Action</th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for x in data %}
+											<tr>
+												<td>{{x.file_name}}</td>
+												<td>{{x.compared_file}}</td>
+												<td>{{x.scores}} %</td>
+												<td>
+													<form method="POST">
+														{% csrf_token %}
+														<button class="button" type="submit" name="submit" value="save {{x.file_name}}">Approve</button>
+													</form>
+												</td>
+												<td>
+													<form method="POST">
+														{% csrf_token %}
+														<button class="button" type="submit" name="submit" value="delete {{x.file_name}}">Reject</button>
+													</form>
+												</td>
+												<td>
+													<form method="POST">
+														{% csrf_token %}
+														<input type="hidden" name="file" value="{{x.file_name}}">
+														<input type="hidden" name="file_compared" value="{{x.compared_file}}">
+														<button class="button" type="submit" name="submit" value="compare">See Result</button>
+													</form>
+												</td>
+											</tr>
+											{% endfor %}
+											
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>  
+						
+	  
+					  </div>  
+				  </div>
+			  </div>  
+
+			  {{compared|safe}}  
+  </div>
+  	<div id="successPopup" class="popup">
+		{{message}}
+	</div>
+	<script>
+        // Check if a success message exists
+        {% if message %}
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show the popup
+            const popup = document.getElementById('successPopup');
+            popup.classList.add('show');
+            
+            // Hide the popup after 3 seconds
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+        });
+        {% endif %}
+    </script>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src = "https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="{% static 'popper.min.js' %}"></script>
+<script src="{% static 'bootstrap.min.js' %}"></script>
+<script type = "text/javascript">
+$(document).ready(function(){
+    $('#table').DataTable();
+    $('#submit').on('click', function(){
+        $firstname = $('#firstname').val();
+        $lastname = $('#lastname').val();
+        $address = $('#address').val();
+  
+        if($firstname == "" || $lastname == "" || $address == ""){
+            alert("Please complete field");
+        }else{
+            $.ajax({
+                type: "POST",
+                url: "insert",
+                data:{
+                    firstname: $firstname,
+                    lastname: $lastname,
+                    address: $address,
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(){
+                    alert('Save Data');
+                    $('#firstname').val('');
+                    $('#lastname').val('');
+                    $('#address').val('');
+                    window.location = "/";
+                }
+            });
+        }
+    });
+});
+</script>
+</html>
